@@ -10,9 +10,9 @@ Files in lib:
 Using:
 - Flutter App (Primarily Android) (Language: Dart)
 - Firebase Database (Used for app messaging view and storage)
-- [InstructBlip-Vicuna-7b (Visual Language Model)] (https://huggingface.co/Salesforce/instructblip-vicuna-7b)
-- [OpenAi API] (https://platform.openai.com/docs/api-reference/chat/create)
-- [MultiOn API] (https://docs.multion.ai/api-reference/sessions/create)
+- [InstructBlip-Vicuna-7b (Visual Language Model)](https://huggingface.co/Salesforce/instructblip-vicuna-7b)
+- [OpenAi API](https://platform.openai.com/docs/api-reference/chat/create)
+- [MultiOn API](https://docs.multion.ai/api-reference/sessions/create)
 
 ## Future Development
 
