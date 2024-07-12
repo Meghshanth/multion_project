@@ -1,125 +1,234 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:intl/intl.dart';
+import 'package:path/path.dart' as Path;
 
-void main() {
-  runApp(const MyApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Flutter Chatbox',
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
+        primarySwatch: Colors.blue,
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: ChatScreen(),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
-
+class ChatScreen extends StatefulWidget {
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  _ChatScreenState createState() => _ChatScreenState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+class _ChatScreenState extends State<ChatScreen> {
+  TextEditingController _messageController = TextEditingController();
+  File? _imageFile;
+  final picker = ImagePicker();
+  bool _isLoading = false;
+  String userId = 'user_id';
 
-  void _incrementCounter() {
+  @override
+  void initState() {
+    super.initState();
+    // Add initial message when the screen is initialized
+    _addInitialMessage();
+  }
+
+  Future<void> _addInitialMessage() async {
+    String initialMessage = "Hello, how can I be helpful today?!";
+    try {
+      await FirebaseFirestore.instance.collection('messages').add({
+        'id': 'ai_id',
+        'prompt': initialMessage,
+        'time': Timestamp.now(),
+      });
+    } catch (e) {
+      print("Error adding initial message: $e");
+    }
+  }
+
+  Future<void> _sendMessage() async {
+    String message = _messageController.text;
+    String? imageUrl;
+
+    if (_imageFile != null) {
+      setState(() {
+        _isLoading = true;
+      });
+      imageUrl = await _uploadImage();
+    }
+
+    if (message.isNotEmpty || imageUrl != null) {
+      await FirebaseFirestore.instance.collection('messages').add({
+        'id': userId,
+        'text': message,
+        'imageUrl': imageUrl,
+        'time': Timestamp.now(),
+      });
+
+      setState(() {
+        _messageController.clear();
+        _imageFile = null;
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<String?> _uploadImage() async {
+    try {
+      String fileName = Path.basename(_imageFile!.path);
+      Reference firebaseStorageRef = FirebaseStorage.instance.ref().child('images/$fileName');
+      UploadTask uploadTask = firebaseStorageRef.putFile(_imageFile!);
+      TaskSnapshot taskSnapshot = await uploadTask;
+      return await taskSnapshot.ref.getDownloadURL();
+    } catch (e) {
+      print(e);
+      return null;
+    }
+  }
+
+  Future<void> _pickImage() async {
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+
     setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
+      if (pickedFile != null) {
+        _imageFile = File(pickedFile.path);
+      } else {
+        print('No image selected.');
+      }
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
     return Scaffold(
       appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
+        title: Text('Flutter Chatbox'),
       ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
+      body: Column(
+        children: <Widget>[
+          Expanded(
+            child: StreamBuilder<QuerySnapshot>(
+              stream: FirebaseFirestore.instance.collection('messages').orderBy('time', descending: true).snapshots(),
+              builder: (context, snapshot) {
+                if (!snapshot.hasData) {
+                  return Center(child: CircularProgressIndicator());
+                }
+
+                final messages = snapshot.data!.docs;
+
+
+                return ListView.builder(
+                  reverse: true, // Ensure messages are shown from newest to oldest
+                  itemCount: messages.length,
+                  itemBuilder: (context, index) {
+                    var commentData = messages[index].data() as Map<String, dynamic>;
+                    bool isCurrentUser = commentData['id'] == userId;
+
+                    return Align(
+                      alignment: isCurrentUser ? Alignment.centerRight : Alignment.centerLeft,
+                      child: Container(
+                        padding: EdgeInsets.all(12),
+                        margin: EdgeInsets.symmetric(vertical: 4, horizontal: 12),
+                        decoration: BoxDecoration(
+                          color: isCurrentUser ? Colors.blue[300] : Colors.grey[200],
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            if (isCurrentUser)
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Image.network(
+                                    commentData['imageUrl'],
+                                    width: 200, // Adjust width as needed
+                                    height: 200, // Adjust height as needed
+                                    fit: BoxFit.cover, // Adjust the fit as needed
+                                  ),
+                                  // SizedBox(height: hasImage ? 8 : 0),
+                                  Text(
+                                    commentData['text'],
+                                    style: TextStyle(
+                                      color: isCurrentUser ? Colors.white : Colors.black,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                ],
+                              )
+                            else
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    commentData['prompt'],
+                                    style: TextStyle(
+                                      color: Colors.black, // Adjust color as needed
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            SizedBox(height: 4),
+                            Text(
+                              DateFormat('hh:mm a, MMM d, yyyy').format(
+                                (commentData['time'] as Timestamp).toDate(),
+                              ),
+                              style: TextStyle(
+                                color: isCurrentUser ? Colors.white70 : Colors.grey,
+                                fontSize: 10,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                );
+              },
             ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
+          ),
+          if (_imageFile != null)
+            Image.file(
+              _imageFile!,
+              height: 150,
             ),
-          ],
-        ),
+          _isLoading ? CircularProgressIndicator() : SizedBox.shrink(),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Row(
+              children: <Widget>[
+                IconButton(
+                  icon: Icon(Icons.photo),
+                  onPressed: _pickImage,
+                ),
+                Expanded(
+                  child: TextField(
+                    controller: _messageController,
+                    decoration: InputDecoration(hintText: 'Enter your message'),
+                  ),
+                ),
+                IconButton(
+                  icon: Icon(Icons.send),
+                  onPressed: _sendMessage,
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 }

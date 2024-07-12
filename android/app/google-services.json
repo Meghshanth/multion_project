@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "622161860190",
+    "project_id": "multion-project-b9754",
+    "storage_bucket": "multion-project-b9754.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:622161860190:android:c2829c51c0f6e4a6e686cf",
+        "android_client_info": {
+          "package_name": "com.example.multion_project"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyChafYpKsuOyllRiK4MPadTa3wtGHK4-xI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
