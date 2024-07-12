@@ -1,4 +1,4 @@
-# MultiOn Interview Project
+# MultiOn Interview Project - by Meghshanth Sara
 
 Goal: Create an end-to-end AI application that takes in an input image screenshot and translates that to browser actions to complete a task using the MultiOn API.
 
