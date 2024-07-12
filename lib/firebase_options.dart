@@ -87,3 +87,5 @@ class DefaultFirebaseOptions {
   );
 
 }
+
+//Add API key when intended to run the app
