@@ -1,16 +1,16 @@
-# multion_project
+## MultiOn Interview Project
 
-MultiOn Interview Project
+Goal: Create an end-to-end AI application that takes in an input image screenshot and translates that to browser actions to complete a task using the MultiOn API.
 
-## Getting Started
+# Getting Started
 
-This project is a starting point for a Flutter application.
+Using:
+- Flutter App (Primarily Android) (Language: Dart)
+- Firebase Database (Used for app messaging view and storage)
+- InstructBlip-Vicuna-7b (Visual Language Model)
+- OpenAi API
+- MultiOn API
 
-A few resources to get you started if this is your first Flutter project:
+# Future Development
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+- Generate more accurate prompts to pass to the MultiOn API by training or fine-tuning.
